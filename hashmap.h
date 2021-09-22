@@ -46,4 +46,12 @@ uint64_t sip_hash(const void *data, size_t len,
 uint64_t murmur_hash(const void *data, size_t len,
                      uint64_t seed0, uint64_t seed1);
 
+struct iterator *chm_iterator_new(struct hashmap *map);
+
+bool chm_iterator_has_next(struct iterator *it);
+
+void *chm_iterator_next(struct hashmap *map, struct iterator *it);
+
+void chm_iterator_reset(struct hashmap *map, struct iterator *it);
+
 #endif //CHASHMAP_HASHMAP_H

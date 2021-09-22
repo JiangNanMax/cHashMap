@@ -30,6 +30,12 @@ struct hashmap {
     int (*compare)(const void *a, const void *b);
 };
 
+struct iterator {
+    size_t index;   // index of next bucket to visit
+    size_t visited;
+    bool hasNext;
+};
+
 struct hashmap *chm_new(size_t elementSize, size_t cap,
                         uint64_t seed0, uint64_t seed1,
                         uint64_t (*hash)(const void *data, size_t len,
@@ -124,7 +130,6 @@ static bool resize(struct hashmap *map, size_t newCap) {
 }
 
 static uint64_t get_hash(struct hashmap *map, void *item) {
-    // 相比于他的代码，少了 << 16 >> 16
     return map->hash(item, map->elementSize, map->seed0, map->seed1);
 }
 
@@ -216,6 +221,44 @@ void *chm_probe(struct hashmap *map, size_t pos) {
     }
     return NULL;
 }
+
+struct iterator *chm_iterator_new(struct hashmap *map) {
+    struct iterator *it = malloc(sizeof(struct iterator));
+    it->index = 0;
+    it->visited = 0;
+    it->hasNext = map->count > 0 ? true : false;
+    return it;
+}
+
+bool chm_iterator_has_next(struct iterator *it) {
+    return it->hasNext;
+}
+
+// todo
+// bug!
+void *chm_iterator_next(struct hashmap *map, struct iterator *it) {
+    if (!it->hasNext) {
+        return NULL;
+    }
+    void *item = NULL;
+    for (; it->index < map->capacity; it->index++) {
+        item = chm_probe(map, it->index);
+        if (item != NULL) {
+            break;
+        }
+    }
+    it->index++;
+    it->visited++;
+    it->hasNext = it->visited < map->count ? true : false;
+    return item;
+}
+
+void chm_iterator_reset(struct hashmap *map, struct iterator *it) {
+    it->index = 0;
+    it->visited = 0;
+    it->hasNext = map->count > 0 ? true : false;
+}
+
 
 //-----------------------------------------------------------------------------
 // SipHash reference C implementation

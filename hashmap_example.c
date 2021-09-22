@@ -46,6 +46,24 @@ int main() {
     user = chm_get(map, &(struct user){ .id="10165102240" });
     printf("%s\n", user?"exists":"not exists");
 
+    struct iterator *it = chm_iterator_new(map);
+    struct user *item = NULL;
+    item = chm_probe(map, 0);
+    item = chm_probe(map, 1);
+
+    printf("-- scan users first --\n");
+    while (chm_iterator_has_next(it)) {
+        user = chm_iterator_next(map, it);
+        printf("%s: name=%s\n", user->id, user->name);
+    }
+    chm_iterator_reset(map, it);
+    printf("%d\n", chm_iterator_has_next(it));
+    printf("-- scan users second --\n");
+    while (chm_iterator_has_next(it)) {
+        user = chm_iterator_next(map, it);
+        printf("%s: name=%s\n", user->id, user->name);
+    }
+    free(it);
     chm_free(map);
 
 }
